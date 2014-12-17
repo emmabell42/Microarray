@@ -1,0 +1,25 @@
+#Single-channel arrays
+
+library(limma)
+GSEXXXX.targets <- readTargets("GSEXXXXXtargets.txt")
+GSEXXXXX <- read.maimages(targets, source="agilent",green.only=TRUE)
+GSEXXXXX.bgcorrected <- backgroundCorrect(GSEXXXXX, method="normexp", offset=16)
+GSEXXXXX.norm <- normalizeBetweenArrays(GSEXXXXX.bgcorrected, method="quantile")
+GSEXXXXX.ave <- avereps(GSEXXXXX.norm, ID=y$genes$ProbeName)
+design <- cbind(Intercept=rep(1,X),EZH2KD=c(X,X,X))
+GSEXXXXX.fit <- lmFit(GSEXXXXX.ave, GSEXXXXX.design)
+GSEXXXXX.fit2 <- eBayes(GSEXXXXX.fit)
+GSEXXXXX.hits <- topTable(GSEXXXXX.fit2, coef=2,number=nrow(GSEXXXXX.norm))
+write.table(GSEXXXXX.hits,"GSEXXXXXhits.txt",sep="\t",quote=FALSE,row.names=FALSE)
+
+#Dual-channel arrays
+
+library(limma)
+GSEXXXXX.targets <- readTargets("GSEXXXXXtargets.txt")
+GSEXXXXX.rg <- read.maimages(GSEXXXXX.targets,source="agilent")
+GSEXXXXX.bgcorrected <- backgroundCorrect(GSEXXXXX.rg,method="normexp")
+GSEXXXXX.ma <- normalizeWithinArrays(GSEXXXXX.bgcorrected,method="loess")
+GSEXXXXX.ave <- avereps(GSEXXXXX.ma, ID=GSEXXXXX.ma$genes$ProbeName)
+GSEXXXXX.design <- c(X,X,X,X)
+GSEXXXXX.fit <- lmFit(GSEXXXXX.ave,GSEXXXXX.design)
+GSEXXXXX.fit2 <- eBayes(GSEXXXXX.fit)
