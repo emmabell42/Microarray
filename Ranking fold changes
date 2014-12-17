@@ -1,0 +1,8 @@
+#Ranking fold changes, for microarray experiments without replicates. Do not use unless you have no alternative.
+#Load in table of array intensity values, log transform and quantile normalise and annotate.
+
+#Subtract one column of probe intensity values from the other.
+pf.fc <- normexprs[,6]-normexprs[,5]
+pf.order <- order(abs(pf.fc),decreasing=TRUE)
+pf.fctable <- data.frame(ID=rownames(normexprs),fc=pf.fc)
+pf.fctable <- pf.fctable[pf.order,]
