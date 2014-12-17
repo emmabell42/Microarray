@@ -1,0 +1,45 @@
+setwd("\path\to\directory\")
+library(affy)
+library(limma)
+
+#Read in .cel files in working directory
+rawdata <- ReadAffy()
+#Read in a targets files detailing the contents of your .cel file (col1=filename,col2=condition)
+targets <- readTargets("GSEXXXtargets.txt",row.names="filename")
+exprs <- pm(rawdata)
+#Image the array
+image(rawdata[,1])
+#Create an MA plot of your expression data
+plotMA(exprs[,c(9,10)])
+
+#Boxplot the log2 transformed intensity values
+boxplot(log(exprs,base=2))
+#Normalise the intensity values
+normdata <- rma(rawdata)
+normexprs <- exprs(normdata)
+#Repeat boxplot
+boxplot(log(normexprs,base=2)
+
+#Plot cluster dendrogram of arrays
+plot(hclust(dist(t(normexprs))),labels=c("XXX","XXX","XXX"))
+
+samples <- sampleNames(normdata)
+probesets <- featureNames(normdata)
+
+#Create design matrix. If you're not using a contrast matrix include an "Intercept" column first, where each row = 1.
+design <- model.matrix(~ as.factor(targets$XXX)) OR design <- model.matrix(~ 0+factor(c(1,1,2,2,3,3)))
+colnames(design) <- c("Intercept","Pair2","Pair3","Pair4","Pair5","Pair6")
+contrast.matrix <- makeContrasts(Pair2-Pair1, Pair3-Pair2, Pair3-Pair1, levels=design)
+
+#Fit to linear regression model with or without contrast matrix.
+fit <- lmFit(normexprs, contrast.matrix)
+fit <- lmFit(normexprs,design)
+#Use empirical Bayesian shrinkage to reduce the standard error to a common value.
+fit2 <- eBayes(fit)
+
+#Annotate the array.
+library(annotate)
+library(ARRAY)
+fit2$genes$Symbol <- getSYMBOL(fit2$genes$ID,"ARRAY")
+GSEXXXXXhits <- topTable(fit2,coef=2,number=nrow(normexprs))
+write.table(GSEXXXXXhits,"GSEXXXXXhits.txt",row.names=FALSE,quote=FALSE,sep=" ")
