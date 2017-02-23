@@ -27,9 +27,17 @@ contrast.matrix <- makeContrasts(contrasts=toContrast, levels=GSE26520.design)
 GSE26520.fit <- lmFit(GSE26520.log,GSE26520.design)
 GSE26520.fit2 <- contrasts.fit(GSE26520.fit,contrast.matrix)
 GSE26520.fit2 <- eBayes(GSE26520.fit2)
-GSE26520.fit2$genes$Symbol <- getSYMBOL(GSE26520.fit2$genes$ID,"ARRAY")
-GSEXXX.hits <- topTable(GSE26520.fit2,coef=2,number=nrow(GSE26520))
-write.table(GSE39452LNCaPhits,"GSE39452LNCaPhits.txt",row.names=FALSE,quote=FALSE,sep=" ")
-plot(density(topTable(fit2,coef=2,number=nrow(normexprs))$logFC))
-qqnorm(topTable(fit2,coef=2,number=nrow(normexprs))$logFC)
-
+annot <- read.table("annotation.txt",sep="\t",head=T,stringsAsFactors=F,comment.char="",quote="")
+geneSymbols <- array(NA,dim=c(nrow(GSE26520),2))
+geneSymbols[,1] <- rownames(GSE26520)
+colnames(geneSymbols) <- c("ID","SYMBOL")
+for(i in 1:nrow(geneSymbols)){
+geneSymbols[i,2] <- annot[which(annot[,1]==geneSymbols[i,1]),7]
+}
+GSE26520.fit2$genes <- geneSymbols
+hits <- gsub("-Control","",toContrast)
+hitsLists <- as.list(rep(NA,length(hits)))
+names(hitsLists) <- hits
+for(i in 1:length(hits)){
+hitsLists[[i]] <- topTable(GSE26520.fit2,coef=i,number=nrow(GSE26520))
+}
