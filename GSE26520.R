@@ -41,3 +41,24 @@ names(hitsLists) <- hits
 for(i in 1:length(hits)){
 hitsLists[[i]] <- topTable(GSE26520.fit2,coef=i,number=nrow(GSE26520))
 }
+############################################################
+#
+## Plot the gene expression of the shRNA inhibited genes
+#
+############################################################
+genes <- sapply(strsplit(toContrast, "_"),"[",1)
+genes[which(!genes %in% geneSymbols[,2])] <- c("Zscan10","4932441K18Rik","Pou5f1","Nanog","Nr0b1","NA","NA","Pou5f1","Pou5f1")
+genes <- na.omit(genes)
+inhibition <- data.frame(array(NA,dim=c(length(genes),3)))
+colnames(inhibition) <- c("Target","LogFC","-10*log(adj. P-value)")
+inhibition[,1] <- genes
+for(i in 1:length(genes)){
+target <- genes[i]
+hitsList <- hitsLists[[i]]
+hitsList <- hitsList[which(!duplicated(hitsList$SYMBOL)),]
+inhibition[i,2] <- as.numeric(hitsList[which(hitsList$SYMBOL==target),3])
+inhibition[i,3] <- as.numeric(hitsList[which(hitsList$SYMBOL==target),7])
+}
+inhibition[,3] <- -10*(log10(inhibition[,3]))
+plot(inhibition[,2],inhibition[,3],pch=20,xlab="LogFC",ylab="-10*log(Adj. P-value)",main="shRNA KD")
+abline(h=13.0103,lty=2)
